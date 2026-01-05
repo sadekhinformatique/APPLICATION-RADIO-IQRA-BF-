@@ -1,6 +1,6 @@
 {
-  "name": "VoxNova Radio & Prayer",
-  "description": "A comprehensive radio application featuring live streaming with automatic fallback logic, prayer times integration via Aladhan API, and a secure admin dashboard.",
+  "name": "Radio iqra & Prayer",
+  "description": "Une application radio complète offrant la diffusion en direct avec basculement automatique, l'intégration des horaires de prière via l'API Aladhan et un tableau de bord d'administration sécurisé..",
   "requestFramePermissions": [
     "geolocation"
   ]
