@@ -1,46 +1,50 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-/* Added Clock and Settings to the imports to fix "Cannot find name" errors */
-import { Play, Pause, Volume2, VolumeX, AlertTriangle, Music, Clock, Settings } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Music, BookOpen, Quote, Users, Heart, ShieldCheck } from 'lucide-react';
 
-const DEFAULT_STREAM = "https://stream.zeno.fm/ztmkyozjspltv.m3u"; // Example stream
-const FALLBACK_PLAYLIST = [
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-];
+const LOGO_URL = "https://i.postimg.cc/bvxHCLLk/2732x2732.png";
 
 const RadioPlayer: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [status, setStatus] = useState<'online' | 'fallback' | 'loading' | 'error'>('loading');
-  const [currentUrl, setCurrentUrl] = useState(DEFAULT_STREAM);
+  
+  const [config, setConfig] = useState({
+    stationName: localStorage.getItem('stationName') || "RADIO IQRA BF",
+    streamUrl: localStorage.getItem('streamUrl') || "https://stream.radiojar.com/8s9u5qz7n3quv",
+    tagline: localStorage.getItem('tagline') || "la voix du saint coran"
+  });
+
+  const FALLBACK_PLAYLIST = [
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+  ];
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     checkStream();
+    const handleStorage = () => {
+      setConfig({
+        stationName: localStorage.getItem('stationName') || "RADIO IQRA BF",
+        streamUrl: localStorage.getItem('streamUrl') || "https://stream.radiojar.com/8s9u5qz7n3quv",
+        tagline: localStorage.getItem('tagline') || "la voix du saint coran"
+      });
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const checkStream = async () => {
     setStatus('loading');
     try {
-      const response = await fetch(DEFAULT_STREAM, { method: 'HEAD', mode: 'no-cors' });
-      // Since it's often a stream, no-cors HEAD might not be enough to truly verify availability
-      // but in a real Node/EJS app this check would be server-side. 
-      // Here we assume it's online but will switch if audio element errors.
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 8000);
+      await fetch(config.streamUrl, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
       setStatus('online');
-      setCurrentUrl(DEFAULT_STREAM);
     } catch (e) {
-      switchToFallback();
+      setStatus('fallback');
     }
-  };
-
-  const switchToFallback = () => {
-    console.warn("Main stream down, switching to fallback playlist...");
-    setStatus('fallback');
-    const randomTrack = FALLBACK_PLAYLIST[Math.floor(Math.random() * FALLBACK_PLAYLIST.length)];
-    setCurrentUrl(randomTrack);
   };
 
   const togglePlay = () => {
@@ -48,10 +52,7 @@ const RadioPlayer: React.FC = () => {
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play().catch(e => {
-        console.error("Playback failed", e);
-        switchToFallback();
-      });
+      audioRef.current.play().catch(() => setStatus('fallback'));
     }
     setIsPlaying(!isPlaying);
   };
@@ -59,121 +60,146 @@ const RadioPlayer: React.FC = () => {
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
     setVolume(val);
-    if (audioRef.current) {
-      audioRef.current.volume = val;
-    }
-  };
-
-  const handleAudioError = () => {
-    if (status !== 'fallback') {
-      switchToFallback();
-    } else {
-      setStatus('error');
-    }
+    if (audioRef.current) audioRef.current.volume = val;
   };
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-8 animate-fadeIn">
-      <div className="text-center">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500 mb-2">
-          VoxNova Live
+    <div className="flex flex-col items-center space-y-12 animate-fadeIn pb-20">
+      <div className="text-center space-y-2">
+        <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-emerald-500 to-amber-500 drop-shadow-sm">
+          {config.stationName}
         </h1>
-        <p className="text-gray-400 text-lg">La voix qui vous accompagne partout.</p>
+        <p className="text-emerald-500/80 text-xl font-medium tracking-widest uppercase">{config.tagline}</p>
       </div>
 
-      {/* Main Player Visualizer Area */}
-      <div className="relative group w-full max-w-md aspect-square rounded-3xl overflow-hidden bg-gray-900 border border-gray-800 shadow-2xl flex flex-col items-center justify-center p-8 transition-transform hover:scale-[1.02]">
-        <div className={`absolute inset-0 bg-indigo-600/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`}></div>
-        
-        {/* Animated Visualizer Skeleton */}
-        <div className="flex items-end space-x-1 h-24 mb-8">
-          {[...Array(12)].map((_, i) => (
-            <div
-              key={i}
-              className={`w-2 bg-indigo-500 rounded-full transition-all duration-300 ${isPlaying ? 'animate-pulse' : 'h-2 opacity-30'}`}
-              style={{ height: isPlaying ? `${Math.random() * 100}%` : '8px', animationDelay: `${i * 0.1}s` }}
-            />
-          ))}
-        </div>
-
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 mb-2">
-            {status === 'online' && <span className="flex h-3 w-3 rounded-full bg-green-500 animate-pulse"></span>}
-            {status === 'fallback' && <AlertTriangle className="w-4 h-4 text-amber-500" />}
-            <span className={`text-sm font-bold uppercase tracking-wider ${status === 'online' ? 'text-green-500' : 'text-amber-500'}`}>
-              {status === 'online' ? 'Direct' : status === 'fallback' ? 'Mode Secours' : 'Vérification...'}
-            </span>
+      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        {/* Visual Player */}
+        <div className="relative group aspect-square rounded-[3rem] overflow-hidden bg-gray-900 border border-emerald-900/30 shadow-2xl flex flex-col items-center justify-center p-8 transition-all hover:border-emerald-500/50">
+          <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          
+          <div className={`relative w-48 h-48 md:w-64 md:h-64 rounded-2xl overflow-hidden mb-8 border-4 border-emerald-500/20 shadow-xl transition-all duration-700 ${isPlaying ? 'scale-105 rotate-1' : 'scale-100 rotate-0'}`}>
+            <img src={LOGO_URL} alt="RADIO IQRA" className="w-full h-full object-cover" />
+            {!isPlaying && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
+                <Play className="w-16 h-16 text-white/80" />
+              </div>
+            )}
           </div>
-          <h2 className="text-2xl font-bold">{status === 'online' ? 'VoxNova Main Stream' : 'Playlist Locale'}</h2>
-          <p className="text-gray-500 text-sm italic">Qualité Audio: 128kbps Stereo</p>
-        </div>
 
-        {/* Controls */}
-        <div className="flex flex-col items-center w-full space-y-6">
-          <button
-            onClick={togglePlay}
-            className="w-20 h-20 rounded-full bg-indigo-600 hover:bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
-          >
-            {isPlaying ? <Pause className="w-10 h-10 fill-white" /> : <Play className="w-10 h-10 ml-1 fill-white" />}
-          </button>
+          <div className="text-center mb-8 z-10">
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <span className={`flex h-2.5 w-2.5 rounded-full ${status === 'online' && isPlaying ? 'bg-emerald-500 animate-ping' : 'bg-gray-600'}`}></span>
+              <span className={`text-xs font-bold uppercase tracking-[0.2em] ${status === 'online' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                {status === 'online' ? 'Radio en Direct' : 'Mode Secours'}
+              </span>
+            </div>
+            <h2 className="text-xl font-bold text-white uppercase tracking-tight">Qualité Audio Digitale</h2>
+          </div>
 
-          <div className="flex items-center space-x-4 w-full px-4">
-            <button onClick={() => setIsMuted(!isMuted)}>
-              {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+          <div className="flex flex-col items-center w-full space-y-8 z-10">
+            <button
+              onClick={togglePlay}
+              className="w-20 h-20 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center shadow-xl shadow-emerald-900/40 transition-all active:scale-95 group/btn"
+            >
+              {isPlaying ? <Pause className="w-8 h-8 text-white fill-white" /> : <Play className="w-8 h-8 ml-1 text-white fill-white" />}
             </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={isMuted ? 0 : volume}
-              onChange={handleVolumeChange}
-              className="flex-grow h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-            />
+
+            <div className="flex items-center space-x-4 w-full max-w-xs px-4">
+              <button onClick={() => setIsMuted(!isMuted)} className="text-emerald-500 hover:text-emerald-400">
+                {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </button>
+              <input
+                type="range"
+                min="0" max="1" step="0.01"
+                value={isMuted ? 0 : volume}
+                onChange={handleVolumeChange}
+                className="flex-grow h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+              />
+            </div>
           </div>
+
+          <audio
+            ref={audioRef}
+            src={status === 'online' ? config.streamUrl : FALLBACK_PLAYLIST[0]}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            muted={isMuted}
+          />
         </div>
 
-        <audio
-          ref={audioRef}
-          src={currentUrl}
-          onError={handleAudioError}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          muted={isMuted}
-        />
+        <div className="space-y-6">
+          <div className="p-8 bg-emerald-900/10 border border-emerald-900/20 rounded-[2.5rem] relative shadow-lg">
+            <Quote className="absolute -top-4 -left-4 w-10 h-10 text-emerald-800 opacity-30" />
+            <h3 className="text-2xl font-bold text-emerald-500 mb-6 flex items-center gap-3">
+              <BookOpen className="w-6 h-6" /> À propos de IQRA TV
+            </h3>
+            <div className="space-y-5 text-gray-300 leading-relaxed text-sm md:text-base">
+              <p className="font-bold text-white text-lg border-l-4 border-amber-500 pl-4">
+                RADIO IQRA TV – La Voix de saint coran
+              </p>
+              <p>
+                Basée au cœur du <strong>Burkina Faso</strong>, RADIO IQRA TV est une station islamique dédiée à la diffusion des enseignements authentiques de l'Islam, dans un esprit de paix, de fraternité et d'éducation spirituelle.
+              </p>
+              <p>
+                Fidèle à sa mission, notre radio-télévision tire son nom de l'impératif divin <strong>"Iqra" (Lis)</strong>, qui rappelle l'importance de la connaissance dans l'épanouissement de la foi et de la société.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-8 bg-gray-900/50 border border-gray-800 rounded-[2.5rem] space-y-6">
+            <h4 className="font-black text-white uppercase tracking-wider text-sm">Nos Programmes Clés</h4>
+            <div className="grid grid-cols-1 gap-4">
+              <ProgramItem 
+                icon={<BookOpen className="w-5 h-5" />} 
+                title="L'éducation religieuse" 
+                desc="Tafsir du Coran, Hadiths, et cours sur les piliers de l’Islam." 
+              />
+              <ProgramItem 
+                icon={<Users className="w-5 h-5" />} 
+                title="Programmes culturels" 
+                desc="Partage de la diversité culturelle musulmane du Burkina Faso et d'ailleurs." 
+              />
+              <ProgramItem 
+                icon={<Heart className="w-5 h-5" />} 
+                title="Soutien communautaire" 
+                desc="Informations locales, conseils sociaux, et initiatives caritatives." 
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl px-4">
-         <div className="p-4 bg-gray-900 border border-gray-800 rounded-xl flex items-center space-x-4">
-            <div className="p-3 bg-indigo-900/30 rounded-full text-indigo-400">
-               <Music className="w-6 h-6" />
-            </div>
-            <div>
-               <h3 className="font-semibold">Titres récents</h3>
-               <p className="text-xs text-gray-500">Liste des musiques passées</p>
-            </div>
-         </div>
-         <div className="p-4 bg-gray-900 border border-gray-800 rounded-xl flex items-center space-x-4">
-            <div className="p-3 bg-purple-900/30 rounded-full text-purple-400">
-               <Clock className="w-6 h-6" />
-            </div>
-            <div>
-               <h3 className="font-semibold">Grille Horaire</h3>
-               <p className="text-xs text-gray-500">Programmes de la journée</p>
-            </div>
-         </div>
-         <div className="p-4 bg-gray-900 border border-gray-800 rounded-xl flex items-center space-x-4">
-            <div className="p-3 bg-amber-900/30 rounded-full text-amber-400">
-               <Settings className="w-6 h-6" />
-            </div>
-            <div>
-               <h3 className="font-semibold">Support</h3>
-               <p className="text-xs text-gray-500">Assistance technique 24/7</p>
-            </div>
-         </div>
+      {/* Grid Icons - Settings remplacé par Protection/Auth */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-5xl">
+        <FeatureCard icon={<BookOpen />} title="Tafsir" desc="Exégèse Coranique" />
+        <FeatureCard icon={<Quote />} title="Hadiths" desc="Sagesse Prophétique" />
+        <FeatureCard icon={<Music />} title="Nasheeds" desc="Poésie Spirituelle" />
+        <FeatureCard icon={<ShieldCheck />} title="Fiable" desc="Source Authentique" />
       </div>
     </div>
   );
 };
+
+const ProgramItem: React.FC<{ icon: React.ReactNode; title: string; desc: string }> = ({ icon, title, desc }) => (
+  <div className="flex items-start space-x-4 p-4 rounded-2xl hover:bg-emerald-900/10 transition-colors border border-transparent hover:border-emerald-500/20">
+    <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-500 shrink-0">
+      {icon}
+    </div>
+    <div>
+      <h5 className="font-bold text-white text-sm">{title}</h5>
+      <p className="text-gray-400 text-xs leading-relaxed">{desc}</p>
+    </div>
+  </div>
+);
+
+const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; desc: string }> = ({ icon, title, desc }) => (
+  <div className="p-6 bg-gray-900 border border-gray-800 rounded-3xl flex flex-col items-center text-center space-y-3 hover:border-emerald-500/30 transition-all hover:-translate-y-1">
+    <div className="text-emerald-500 bg-emerald-500/10 p-4 rounded-full">{icon}</div>
+    <div>
+      <h5 className="font-bold text-white text-sm">{title}</h5>
+      <p className="text-[10px] text-gray-500 uppercase tracking-widest">{desc}</p>
+    </div>
+  </div>
+);
 
 export default RadioPlayer;

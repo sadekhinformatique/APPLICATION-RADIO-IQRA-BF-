@@ -1,6 +1,6 @@
 {
-  "name": "Radio iqra & Prayer",
-  "description": "Une application radio complète offrant la diffusion en direct avec basculement automatique, l'intégration des horaires de prière via l'API Aladhan et un tableau de bord d'administration sécurisé..",
+  "name": "RADIO IQRA BF",
+  "description": "RADIO IQRA TV – La Voix du Saint Coran. Station islamique dédiée à la diffusion des enseignements authentiques de l'Islam au Burkina Faso.",
   "requestFramePermissions": [
     "geolocation"
   ]
