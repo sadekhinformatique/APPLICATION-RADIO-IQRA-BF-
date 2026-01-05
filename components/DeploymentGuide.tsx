@@ -69,7 +69,7 @@ const DeploymentGuide: React.FC = () => {
               </ul>
             </Step>
             <Step number={3} title="Redirections">
-              Dans l'onglet "Redirects", ajoutez une règle : <code className="bg-gray-800 px-1">/* -> /index.html (200)</code>.
+              Dans l'onglet "Redirects", ajoutez une règle : <code className="bg-gray-800 px-1">/* -&gt; /index.html (200)</code>.
             </Step>
           </div>
           <a href="https://render.com/docs/deploy-react" target="_blank" className="inline-flex items-center text-purple-400 hover:underline">
