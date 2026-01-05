@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 /* Added Clock and Settings to the imports to fix "Cannot find name" errors */
 import { Play, Pause, Volume2, VolumeX, AlertTriangle, Music, Clock, Settings } from 'lucide-react';
 
-const DEFAULT_STREAM = "https://stream.radiojar.com/8s9u5qz7n3quv"; // Example stream
+const DEFAULT_STREAM = "https://stream.zeno.fm/ztmkyozjspltv.m3u"; // Example stream
 const FALLBACK_PLAYLIST = [
   "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
   "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
