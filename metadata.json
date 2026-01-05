@@ -1,0 +1,7 @@
+{
+  "name": "VoxNova Radio & Prayer",
+  "description": "A comprehensive radio application featuring live streaming with automatic fallback logic, prayer times integration via Aladhan API, and a secure admin dashboard.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
