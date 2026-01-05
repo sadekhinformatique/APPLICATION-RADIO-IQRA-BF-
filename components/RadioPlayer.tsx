@@ -12,7 +12,7 @@ const RadioPlayer: React.FC = () => {
   
   const [config, setConfig] = useState({
     stationName: localStorage.getItem('stationName') || "RADIO IQRA BF",
-    streamUrl: localStorage.getItem('streamUrl') || "https://stream.radiojar.com/8s9u5qz7n3quv",
+    streamUrl: localStorage.getItem('streamUrl') || "https://stream.zeno.fm/ztmkyozjspltv.m3u",
     tagline: localStorage.getItem('tagline') || "la voix du saint coran"
   });
 
@@ -27,7 +27,7 @@ const RadioPlayer: React.FC = () => {
     const handleStorage = () => {
       setConfig({
         stationName: localStorage.getItem('stationName') || "RADIO IQRA BF",
-        streamUrl: localStorage.getItem('streamUrl') || "https://stream.radiojar.com/8s9u5qz7n3quv",
+        streamUrl: localStorage.getItem('streamUrl') || "https://stream.zeno.fm/ztmkyozjspltv.m3u",
         tagline: localStorage.getItem('tagline') || "la voix du saint coran"
       });
     };
